@@ -1,2 +1,2 @@
 #!/bin/bash
-su - betty -c 'whoami'
+id -un betty -c 'whoam'
