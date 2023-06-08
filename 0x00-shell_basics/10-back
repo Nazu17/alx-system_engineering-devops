@@ -1,3 +1,2 @@
 #!/bin/bash
-echo "Previous working directory: $previous_dir"
-echo "Current working directory: $(pwd)"
+echo "Previous working directory: $previous_dir"/"Current working directory: $(pwd)"
