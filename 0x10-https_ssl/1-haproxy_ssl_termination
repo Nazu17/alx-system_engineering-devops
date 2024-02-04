@@ -2,12 +2,11 @@ global
         log /dev/log    local0
         log /dev/log    local1 notice
         chroot /var/lib/haproxy
-        stats socket /run/haproxy/admin.sock mode 660 level admin expose-fd listeners
+        stats socket /run/haproxy/admin.sock mode 660 level admin
         stats timeout 30s
         user haproxy
         group haproxy
         daemon
-        # ADDITIONS
         maxconn 2048
         tune.ssl.default-dh-param 2048
 
@@ -24,6 +23,8 @@ defaults
         log     global
         mode    http
         option  httplog
+        option forwardfor
+        option http-server-close
         option  dontlognull
         timeout connect 5000
         timeout client  50000
@@ -35,26 +36,16 @@ defaults
         errorfile 502 /etc/haproxy/errors/502.http
         errorfile 503 /etc/haproxy/errors/503.http
         errorfile 504 /etc/haproxy/errors/504.http
-        # ADDITIONS
-        option forwardfor
-        option http-server-close
 
-#--munyasi.tech-params-begin--
-frontend munyasi.tech-frontend
-        bind *:80
-        bind *:443 ssl crt /etc/haproxy/certs/munyasi.tech.pem
-        acl letsencrypt-acl path_beg /.well-known/acme-challenge/
-        http-request set-header X-Forwarded-Proto http
-        # ADDITIONS
-        use_backend letsencrypt-backend if letsencrypt-acl
-        default_backend munyasi.tech-backend
-
-backend munyasi.tech-backend
-        balance roundrobin
+frontend www-http
+        mode http
+        bind *:443 ssl crt /etc/haproxy/certs/www.binael.tech.pem
         redirect scheme https if !{ ssl_fc }
-        server 20639-web-01 3.227.217.150:80 check
-        server 20639-web-02 3.95.27.202:80 check
+        acl is_root path -i /
+        use_backend www-backend if is_root
 
-backend letsencrypt-backend
-        server letsencrypt 127.0.0.1:54321
-#--munyasi.tech-params-end--
+backend www-backend
+        mode http
+        balance roundrobin
+        server 8248-web-02 54.175.133.2:80 check
+        server 8248-web-01 52.86.109.82:80 check
